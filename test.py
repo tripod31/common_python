@@ -1,9 +1,9 @@
 # coding:utf-8
 import unittest
 from yoshi.util import is_match_patterns,filter_arr,zip_files,find_all_files
-from yoshi.csv import CsvSqlite
+from yoshi.csv import CsvSqlite,CsvSqla
 
-class Test1(unittest.TestCase):
+class Test_util(unittest.TestCase):
     def test1(self):
         self.assertEqual(is_match_patterns("abcdef",["ab","cd"]),True)
         self.assertEqual(is_match_patterns("abcdef",["gh","ij"]),False)
@@ -21,7 +21,7 @@ class Test1(unittest.TestCase):
                        filter_func=lambda path:is_match_patterns(path, ["\.csv$"])
                        )
     
-class Test_csv(unittest.TestCase):
+class Test_csvsqlite(unittest.TestCase):
     def setUp(self):
         pass
     def test_csv_sqlite(self):
@@ -35,6 +35,23 @@ class Test_csv(unittest.TestCase):
         obj.sqlite2csv("test/test_out_sjis.csv","table1")
     def tearDown(self):
         pass
-    
+
+class Test_csvsqla(unittest.TestCase):
+    def setUp(self):
+        pass
+    def test_csv_sqla(self):
+        obj = CsvSqla()
+        Model=obj.csv2sqla("test/test_in_sjis.csv","table1")
+        session = obj.get_session()
+        row = session.query(Model).first()
+        self.assertEqual(row.name,"よし")
+        self.assertEqual(row.age,"51")             
+        obj.sqla2csv(Model,"test/test_out_sjis.csv",)
+        
+    def tearDown(self):
+        pass
+        
 if __name__ == '__main__':
-    unittest.main()
+    #unittest.main()
+    suite = unittest.TestLoader().loadTestsFromTestCase(Test_csvsqla)
+    unittest.TextTestRunner(verbosity=2).run(suite)
