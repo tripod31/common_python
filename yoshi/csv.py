@@ -12,9 +12,6 @@ import types
 
 '''
 CSV<-->SqlAlchemyの変換
-CSVのヘッダからsqliteのテーブルを作成
-テーブルにCSVのデータを入れる
-そのテーブルを操作するためのSqlAlchemyのクラスを返す
 '''
 class CsvSqla:
 

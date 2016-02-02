@@ -87,5 +87,7 @@ class Test_csvsqla(unittest.TestCase):
         
 if __name__ == '__main__':
     #unittest.main()
-    suite = unittest.TestLoader().loadTestsFromTestCase(Test_csvsqlite)
+    suite = unittest.TestSuite()
+    suite.addTest(Test_csvsqlite('test_csv_sqlite'))
+    suite.addTest(Test_csvsqla('test_csv_sqla'))
     unittest.TextTestRunner(verbosity=2).run(suite)
