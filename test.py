@@ -18,12 +18,13 @@ class Test_util(unittest.TestCase):
         print(arr_path)
     def test5(self):
         zip_files("test", "test/zipwpath.zip",
-                       filter_func=lambda path:is_match_patterns(path, ["\.csv$"])
-                       )
+                  filter_func=lambda path:is_match_patterns(path, ["\.csv$"])
+                )
     
 class Test_csvsqlite(unittest.TestCase):
     def setUp(self):
         pass
+    
     def test_csv_sqlite(self):
         obj = CsvSqlite()
         obj.csv2sqlite("test/test_in_sjis.csv","table1")
@@ -33,20 +34,38 @@ class Test_csvsqlite(unittest.TestCase):
         self.assertEqual(row[0],"よし")
         self.assertEqual(row[1],"51")             
         obj.sqlite2csv("test/test_out_sjis.csv","table1")
+    
     def tearDown(self):
         pass
 
 class Test_csvsqla(unittest.TestCase):
     def setUp(self):
         pass
+    
     def test_csv_sqla(self):
+
+        #読み込み
         obj = CsvSqla()
         Model=obj.csv2sqla("test/test_in_sjis.csv","table1")
         session = obj.get_session()
         row = session.query(Model).first()
         self.assertEqual(row.name,"よし")
-        self.assertEqual(row.age,"51")             
+        self.assertEqual(row.age,"51")
+        
+        #変更
+        row.age = 52
+        session.commit()          
+        
+        #書き込み
         obj.sqla2csv(Model,"test/test_out_sjis.csv",)
+        
+        #再度読み込み
+        obj = CsvSqla()
+        Model=obj.csv2sqla("test/test_out_sjis.csv","table1")
+        session = obj.get_session()
+        row = session.query(Model).first()
+        self.assertEqual(row.name,"よし")
+        self.assertEqual(row.age,"52")        
         
     def tearDown(self):
         pass

@@ -31,11 +31,12 @@ class CsvSqla:
         return self._Session()
 
     '''
-    CSV-->SqlAlchemyの変換
+CSV-->SqlAlchemyの変換
 
-    CSVのヘッダからsqliteのテーブルを作成
-    　テーブルにCSVのデータを入れる
-    　そのテーブルを操作するためのSqlAlchemyのクラスを返す
+CSVのヘッダからsqliteのテーブルを作成
+テーブルにCSVのデータを入れる
+そのテーブルを操作するためのSqlAlchemyのクラスを返す
+sqlalchemyはprimary keyが必須なので、autoincrimentのidカラムを追加
     '''
 
     def csv2sqla(self,csv_file,tablename):
@@ -49,14 +50,15 @@ class CsvSqla:
                     # CSVのヘッダからsqlalchemyのクラス、sqliteのテーブルを作成
                     header = False
                     
-                    cols = [ Column('id', Integer, Sequence(tablename+'_id_seq'), primary_key=True)]    #primary key is mandetary
+                    #sqlalchemyはprimary keyが必須なので、autoincrimentのidカラムを追加
+                    cols = [ Column('id', Integer, Sequence(tablename+'_id_seq'), primary_key=True)]
                     for col in row:
                         cols.append(Column(col,String))
                     table = Table(tablename,self._metadata,*cols)
                     
-                    self._metadata.create_all(self._engine)
-                    Model = types.new_class(tablename)    #define class
-                    mapper(Model,table)
+                    self._metadata.create_all(self._engine) #テーブル作成
+                    Model = types.new_class(tablename)      #テーブル名のクラスを定義
+                    mapper(Model,table)                     #クラスとテーブルを紐付け
                     
                     rowlen = len(row)
                 else:
@@ -66,7 +68,7 @@ class CsvSqla:
                         colnames=self.get_col_names(tablename)
                         for idx in range(0,len(row)):
                             colname = colnames[idx+1]
-                            e.__dict__[colname]=row[idx]    #set attribute of object
+                            e.__dict__[colname]=row[idx]    #オブジェクトのメンバを文字列をキーにして設定
                             
                         session.add(e)
                 
@@ -74,9 +76,9 @@ class CsvSqla:
         return Model    #テーブルを操作するためのSqlAlchemyのクラスを返す
 
     '''
-    CSV<--SqlAlchemyの変換
-    
-    Model    SqlAlchemyのクラス
+CSV<--SqlAlchemyの変換
+
+Model    SqlAlchemyのクラス
     '''
     def sqla2csv(self,Model,csv_file):
         
@@ -84,7 +86,7 @@ class CsvSqla:
             writer = csv.writer(f,lineterminator='\n')
             session = self._Session()
             #ヘッダー出力
-            tablename = Model.__name__  #class name
+            tablename = Model.__name__  #クラス名
             colnames= self.get_col_names(tablename)   
             writer.writerow(colnames[1:])   #skip first column=id
             
@@ -93,10 +95,13 @@ class CsvSqla:
                 data=[]
                 for idx in range(1,len(colnames)):
                     attr = colnames[idx]
-                    val = row.__dict__[attr]    #get attribute of Model object
+                    val = row.__dict__[attr]    #オブジェクトのメンバを文字列をキーにして取得
                     data.append(val)
                 writer.writerow(data)
     
+    '''
+テーブルの列名を取得
+    '''
     def get_col_names(self,tablename):
         return [ col.name for col in self._metadata.tables[tablename].columns]
     
@@ -121,24 +126,23 @@ class CsvSqlite:
     def csv2sqlite(self,csv_file,tablename):
         c = self._conn.cursor()
 
-        # remove the path and extension and use what's left as a table name
-        #tablename = os.path.splitext(os.path.basename(csv_file))[0]
-
         with open(csv_file, "r",encoding=self._enc_csv) as f:
             reader = csv.reader(f)
 
             header = True
             for row in reader:
                 if header:
-                    # gather column names from the first row of the csv
+                    # ヘッダー処理
                     header = False
-
+                    
+                    #テーブル作成
                     sql = "DROP TABLE IF EXISTS %s" % tablename
                     c.execute(sql)
                     sql = "CREATE TABLE %s (%s)" % (tablename,
                               ", ".join([ "%s text" % column for column in row ]))
                     c.execute(sql)
 
+                    #*_idという名前のカラムにインデックス作成
                     for column in row:
                         if column.lower().endswith("_id"):
                             index = "%s__%s" % ( tablename, column )
@@ -150,7 +154,7 @@ class CsvSqlite:
 
                     rowlen = len(row)
                 else:
-                    # skip lines that don't have the right number of columns
+                    # 行データ入力
                     if len(row) == rowlen:
                         c.execute(insertsql, row)
 
@@ -166,6 +170,7 @@ class CsvSqlite:
             row = list(map(lambda cols:cols[0],csr.description))
             writer.writerow(row)
 
+            #行出力
             for row in csr:
                 writer.writerow(row)
         csr.close()
