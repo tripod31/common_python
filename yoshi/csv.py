@@ -18,7 +18,6 @@ class CsvSqla:
     def __init__(self,db_file="sqlite:///:memory:",enc_csv="cp932",p_echo=True):
         self._engine = create_engine(db_file, echo=p_echo)
         self._Session = sessionmaker(bind=self._engine) #Sessionクラス
-        self._Base = declarative_base()
         self._enc_csv = enc_csv
 
     def __del__(self):
@@ -48,7 +47,7 @@ sqlalchemyはprimary keyが必須なので、autoincrimentのidカラムを追�
                     header = False
                     
                     #テーブル名のクラスを定義
-                    #Base = declarative_base()
+                    Base = declarative_base()   #基底クラス
                     #sqlalchemyはprimary keyが必須なので、autoincrimentのidカラムを追加
                     attrs = {
                         '__tablename__':tablename,
@@ -56,15 +55,15 @@ sqlalchemyはprimary keyが必須なので、autoincrimentのidカラムを追�
                         }
                     for col in row:
                         attrs[col]=Column(String)
-                    Model = type(tablename,(self._Base,),attrs)
-                    self._Base.metadata.create_all(self._engine) #テーブル作成
+                    Model = type(tablename,(Base,),attrs)   #クラス定義
+                    Model.metadata.create_all(self._engine) #テーブル作成
                     
                     rowlen = len(row)
                 else:
                     # テーブルにCSVのデータを入れる
                     if len(row) == rowlen:
                         e = Model()
-                        colnames=self.get_col_names(tablename)
+                        colnames=self.get_col_names(Model.metadata,tablename)
                         for idx in range(0,len(row)):
                             colname = colnames[idx+1]
                             e.__dict__[colname]=row[idx]    #オブジェクトのメンバを文字列をキーにして設定
@@ -86,7 +85,7 @@ Model    SqlAlchemyのクラス
             session = self._Session()
             #ヘッダー出力
             tablename = Model.__name__  #クラス名
-            colnames= self.get_col_names(tablename)   
+            colnames= self.get_col_names(Model.metadata,tablename)
             writer.writerow(colnames[1:])   #skip first column=id
             
             #行出力
@@ -101,8 +100,8 @@ Model    SqlAlchemyのクラス
     '''
 テーブルの列名を取得
     '''
-    def get_col_names(self,tablename):
-        return [ col.name for col in self._Base.metadata.tables[tablename].columns]
+    def get_col_names(self,metadata,tablename):
+        return [ col.name for col in metadata.tables[tablename].columns]
     
 '''
 CSV<-->Sqliteの変換
