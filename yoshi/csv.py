@@ -6,9 +6,9 @@ Created on 2014/12/18
 '''
 import csv
 import sqlite3
-from sqlalchemy import Table, Column, Integer, String, MetaData, create_engine,Sequence
-from sqlalchemy.orm import mapper,sessionmaker
-import types
+from sqlalchemy import Column, Integer, String,  create_engine,Sequence
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
 
 '''
 CSV<-->SqlAlchemyの変換
@@ -18,7 +18,7 @@ class CsvSqla:
     def __init__(self,db_file="sqlite:///:memory:",enc_csv="cp932",p_echo=True):
         self._engine = create_engine(db_file, echo=p_echo)
         self._Session = sessionmaker(bind=self._engine) #Sessionクラス
-        self._metadata = MetaData()
+        self._Base = declarative_base()
         self._enc_csv = enc_csv
 
     def __del__(self):
@@ -47,15 +47,17 @@ sqlalchemyはprimary keyが必須なので、autoincrimentのidカラムを追�
                     # CSVのヘッダからsqlalchemyのクラス、sqliteのテーブルを作成
                     header = False
                     
+                    #テーブル名のクラスを定義
+                    #Base = declarative_base()
                     #sqlalchemyはprimary keyが必須なので、autoincrimentのidカラムを追加
-                    cols = [ Column('id', Integer, Sequence(tablename+'_id_seq'), primary_key=True)]
+                    attrs = {
+                        '__tablename__':tablename,
+                        'id':Column( Integer, Sequence(tablename+'_id_seq'), primary_key=True)
+                        }
                     for col in row:
-                        cols.append(Column(col,String))
-                    table = Table(tablename,self._metadata,*cols)
-                    
-                    self._metadata.create_all(self._engine) #テーブル作成
-                    Model = types.new_class(tablename)      #テーブル名のクラスを定義
-                    mapper(Model,table)                     #クラスとテーブルを紐付け
+                        attrs[col]=Column(String)
+                    Model = type(tablename,(self._Base,),attrs)
+                    self._Base.metadata.create_all(self._engine) #テーブル作成
                     
                     rowlen = len(row)
                 else:
@@ -100,7 +102,7 @@ Model    SqlAlchemyのクラス
 テーブルの列名を取得
     '''
     def get_col_names(self,tablename):
-        return [ col.name for col in self._metadata.tables[tablename].columns]
+        return [ col.name for col in self._Base.metadata.tables[tablename].columns]
     
 '''
 CSV<-->Sqliteの変換
