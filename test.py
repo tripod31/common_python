@@ -1,6 +1,7 @@
 # coding:utf-8
 import unittest
-from yoshi.util import is_match_patterns,filter_arr,zip_files,CsvSqlite,find_all_files
+from yoshi.util import is_match_patterns,filter_arr,zip_files,find_all_files
+from yoshi.csv import CsvSqlite
 
 class Test1(unittest.TestCase):
     def test1(self):
