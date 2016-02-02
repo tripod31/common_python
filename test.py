@@ -26,14 +26,29 @@ class Test_csvsqlite(unittest.TestCase):
         pass
     
     def test_csv_sqlite(self):
+        #読み込み
         obj = CsvSqlite()
         obj.csv2sqlite("test/test_in_sjis.csv","table1")
         csr = obj.connection.execute('select * from table1 where name="よし"')
         row = csr.fetchone()
-        #print(row)
         self.assertEqual(row[0],"よし")
-        self.assertEqual(row[1],"51")             
+        self.assertEqual(row[1],"51")
+        
+        #変更
+        obj.connection.execute('update table1 set age=52 where name="よし"')
+        obj.connection.commit()
+        
+        #書き込み             
         obj.sqlite2csv("test/test_out_sjis.csv","table1")
+    
+        #再読み込み
+        obj = CsvSqlite()
+        obj.csv2sqlite("test/test_out_sjis.csv","table1")
+        csr = obj.connection.execute('select * from table1 where name="よし"')
+        row = csr.fetchone()
+        self.assertEqual(row[0],"よし")
+        self.assertEqual(row[1],"52")
+    
     
     def tearDown(self):
         pass
@@ -72,5 +87,5 @@ class Test_csvsqla(unittest.TestCase):
         
 if __name__ == '__main__':
     #unittest.main()
-    suite = unittest.TestLoader().loadTestsFromTestCase(Test_csvsqla)
+    suite = unittest.TestLoader().loadTestsFromTestCase(Test_csvsqlite)
     unittest.TextTestRunner(verbosity=2).run(suite)
