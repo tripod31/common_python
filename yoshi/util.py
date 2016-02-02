@@ -128,9 +128,6 @@ def conv_encoding(path,enc_to):
 CSV<-->Sqliteの変換
 '''
 class CsvSqlite:
-    _db_file = ""
-    _enc_csv = ""
-    _conn = None
 
     @property
     def connection(self):
@@ -197,24 +194,3 @@ class CsvSqlite:
                 writer.writerow(row)
         csr.close()
 
-
-'''
-python2用
-unicode文字列出力時エラー回避
-'''
-'''
-class MyDictWriter(csv.DictWriter):
-    out_encoding=""
-
-    def __init__(self, f, fieldnames, restval="", extrasaction="raise", dialect="excel", out_encoding="utf-8",*args, **kwds):
-        self.out_encoding=out_encoding
-        csv.DictWriter.__init__(self, f, fieldnames, restval=restval, extrasaction=extrasaction, dialect=dialect, *args, **kwds)
-
-    def writerows(self, rowdicts):
-        for row in rowdicts:
-            #unicode文字列をcsv.DictWriterに渡すとエラーになるのでエンコード
-            row_new=dict()
-            for (key,val) in row.items():
-                row_new[key]=val.encode(self.out_encoding)
-            csv.DictWriter.writerow(self, row_new)
-'''
