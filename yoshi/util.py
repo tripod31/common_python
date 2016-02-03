@@ -100,22 +100,19 @@ def get_encoding(path):
             f.close()
     if not bSuccess:
         raise Exception("can't decode:%s" % (path))
-    return encoding
+    return encoding,data
 
 '''
 ファイルの文字コードを変換
 '''
 def conv_encoding(path,enc_to):
     try:
-        enc_org = get_encoding(path)
-        f = open(path,"rU",encoding=enc_org)
-        data = f.read()
-        f.close()
-        f = open(path, 'w',encoding=enc_to)
-        f.write(data)
-        f.close()
-        #print("converted:%s->%s\t%s"%(enc_org,enc_to,path))
+        enc_org,data = get_encoding(path)
+        
+        if enc_org != enc_to:
+            with open(path, 'w',encoding=enc_to) as f:
+                f.write(data)
+                f.close()
+            #print("converted:%s->%s\t%s"%(enc_org,enc_to,path))
     except Exception as e:
         raise Exception (path,':',e)
-    finally:
-        f.close()
