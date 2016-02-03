@@ -1,3 +1,5 @@
+#/usr/bin/env python3
+
 # coding:utf-8
 import unittest
 from yoshi.util import is_match_patterns,filter_arr,zip_files,find_all_files

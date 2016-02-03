@@ -1,0 +1,9 @@
+.project
+.pydev*
+.git/
+.settings/
+.*.html
+__pycache__/*
+*.pyc
+
+/test/
