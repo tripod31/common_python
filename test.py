@@ -1,10 +1,17 @@
 #/usr/bin/env python3
-
 # coding:utf-8
+
 import unittest
 from yoshi.util import is_match_patterns,filter_arr,zip_files,find_all_files
 from yoshi.csv import CsvSqlite,CsvSqla
 
+def create_csv():
+    f=open("test/test_in_sjis.csv","w",encoding="cp932")
+    f.write("name,age\n")
+    f.write("よし,51\n")
+    f.write("よしの,53\n")
+    f.close()
+    
 class Test_util(unittest.TestCase):
     def test1(self):
         self.assertEqual(is_match_patterns("abcdef",["ab","cd"]),True)
@@ -24,6 +31,10 @@ class Test_util(unittest.TestCase):
                 )
     
 class Test_csvsqlite(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        create_csv()
+        
     def setUp(self):
         pass
     
