@@ -81,6 +81,9 @@ def zip_files(start_dir,zip_file,remove_dir=False,filter_func=None):
                 path_in_zip = path
             zf.write(path,path_in_zip)
 
+class DecodeException(Exception):
+    pass
+
 '''
 ファイルの文字コードを判定
 '''
@@ -100,7 +103,7 @@ def get_encoding(path):
         finally:
             f.close()
     if not bSuccess:
-        raise Exception("can't decode:%s" % (path))
+        raise DecodeException(path)
     return encoding,data
 
 '''
