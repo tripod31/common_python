@@ -114,10 +114,9 @@ def conv_encoding(path,to_enc,to_eol=None):
         if to_eol is not None:
             data = re.sub('[\r\n]+',to_eol,data)
         
-        if org_enc != to_enc:
-            with open(path, 'w',encoding=to_enc,newline='') as f:   #newline='',改行コードの変換をしない
-                f.write(data)
-                f.close()
-            #print("converted:%s->%s\t%s"%(enc_org,enc_to,path))
+        with open(path, 'w',encoding=to_enc,newline='') as f:   #newline='',改行コードの変換をしない
+            f.write(data)
+            f.close()
+
     except Exception as e:
         raise Exception (path,':',e)
