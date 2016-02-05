@@ -12,7 +12,7 @@ import fnmatch
 import subprocess
 
 '''
-配列の共通する要素の配列を求める
+get list of common menbers of two lists
 '''
 def get_common_list(list1,list2):
     set1 = set(list1)
@@ -28,13 +28,13 @@ def exec_command(cmd,encoding,env=None):
         stderr_data.decode(encoding).replace("\r\n","\n"),
 
 '''
-    文字列のリストから正規表現の配列に一致するものだけ取り出す
+filter list of string,which matches regular expression
 '''
 def filter_arr(arr_str,arr_regex,revert=False):
         return filter(lambda s:xor(is_match_patterns(s, arr_regex),revert),arr_str)
 
 '''
-    文字列が正規表現の配列に一致するか
+returns whether string matches regular expression or not
 '''
 def is_match_patterns(s,arr_pattern):
     bRet = False
@@ -45,7 +45,7 @@ def is_match_patterns(s,arr_pattern):
     return bRet
 
 '''
-    文字列がfnmatch文字列の配列に一致するか
+returns whether string matches fnmatch expression or not
 '''
 def is_match_patterns_fnmatch(s,arr_pattern):
     bRet = False
@@ -56,7 +56,7 @@ def is_match_patterns_fnmatch(s,arr_pattern):
     return bRet
 
 '''
-ディレクトリ下のファイルを再帰的に返す
+returns files under directory
 '''
 def find_all_files(directory):
     for root, dirs, files in os.walk(directory):
@@ -64,9 +64,10 @@ def find_all_files(directory):
             yield os.path.join(root, file)
 
 '''
-配列のpathのファイルZIPファイルに出力
+put files under directory to zip file
+
 filter_func
-    pathを引数としてとり、出力するかどうかを返す
+    take path as argument,returns whether the file is to be output or not
 '''
 def zip_files(start_dir,zip_file,remove_dir=False,filter_func=None):
     with zipfile.ZipFile(zip_file, "w", zipfile.ZIP_DEFLATED) as zf:
@@ -85,15 +86,15 @@ class DecodeException(Exception):
     pass
 
 '''
-ファイルの文字コードを判定
+get encoding of file
 '''
 def get_encoding(path):
-    encodings = ('ascii','utf-8','shift_jis','cp932','euc-jp')  #誤認識するのでutf-8を優先する
+    encodings = ('ascii','utf-8','shift_jis','cp932','euc-jp')  #prevail utf-8,otherwise it misrecognite encoding
     data=None
     bSuccess = False
     for encoding in encodings:
         try:
-            with open(path,"r",encoding=encoding,newline='') as f:   #newline='',改行コードの変換をしない
+            with open(path,"r",encoding=encoding,newline='') as f:   #newline='',does'nt convert end of line
                 data = f.read()
                 f.close()
                 bSuccess=True
@@ -107,9 +108,11 @@ def get_encoding(path):
     return encoding,data
 
 '''
-ファイルの文字コードを変換
+converts encoding of file
+
 to_eol
-    改行コードを指定
+    end of line which is converted to.
+    '\r\n' or '\n'
 '''
 def conv_encoding(path,to_enc,to_eol=None):
     try:
