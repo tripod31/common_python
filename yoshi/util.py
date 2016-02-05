@@ -90,9 +90,10 @@ def get_encoding(path):
     bSuccess = False
     for encoding in encodings:
         try:
-            f = open(path,"r",encoding=encoding)
-            data = f.read()
-            bSuccess=True
+            with open(path,"r",encoding=encoding,newline='') as f:   #newline='',改行コードの変換をしない
+                data = f.read()
+                f.close()
+                bSuccess=True
             break
         except:
             pass
@@ -104,13 +105,17 @@ def get_encoding(path):
 
 '''
 ファイルの文字コードを変換
+to_eol
+    改行コードを指定
 '''
-def conv_encoding(path,enc_to):
+def conv_encoding(path,to_enc,to_eol=None):
     try:
-        enc_org,data = get_encoding(path)
+        org_enc,data = get_encoding(path)
+        if to_eol is not None:
+            data = re.sub('[\r\n]+',to_eol,data)
         
-        if enc_org != enc_to:
-            with open(path, 'w',encoding=enc_to) as f:
+        if org_enc != to_enc:
+            with open(path, 'w',encoding=to_enc,newline='') as f:   #newline='',改行コードの変換をしない
                 f.write(data)
                 f.close()
             #print("converted:%s->%s\t%s"%(enc_org,enc_to,path))
