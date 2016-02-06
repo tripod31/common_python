@@ -1,8 +1,13 @@
 common_python
 =====
-自分で使うためのpythonライブラリ
-####Util　　
-汎用関数
+python library.
 
-####CSV  
-CSVをsqlite/sqlalchemyオブジェクトに読み込む
+Util　　
+-----
+misc functions
+
+CSV  
+-----
+read CSV file into sqlite/sqlalchemy object
+####required libraries
++ sqlalchemy
