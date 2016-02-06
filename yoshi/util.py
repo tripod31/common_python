@@ -89,7 +89,7 @@ class DecodeException(Exception):
 get encoding of file
 '''
 def get_encoding(path):
-    encodings = ('ascii','utf-8','shift_jis','cp932','euc-jp')  #prevail utf-8,otherwise it misrecognite encoding
+    encodings = ('ascii','utf-8','shift_jis','cp932','euc-jp')  #prevail utf-8,otherwise it fails to recognite encoding
     data=None
     bSuccess = False
     for encoding in encodings:
@@ -120,7 +120,7 @@ def conv_encoding(path,to_enc,to_eol=None):
         if to_eol is not None:
             data = re.sub('[\r\n]+',to_eol,data)
         
-        with open(path, 'w',encoding=to_enc,newline='') as f:   #newline='',改行コードの変換をしない
+        with open(path, 'w',encoding=to_enc,newline='') as f:   #newline='',does'nt convert end of line
             f.write(data)
             f.close()
 
