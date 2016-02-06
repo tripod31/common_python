@@ -2,10 +2,15 @@
 # coding:utf-8
 
 import unittest
+import os
+
 from yoshi.util import is_match_patterns,filter_arr,zip_files,find_all_files
 from yoshi.csv import CsvSqlite,CsvSqla
 
 def create_csv():
+    if not os.path.exists('test'):
+        os.mkdir('test')
+    
     f=open("test/test_in_sjis.csv","w",encoding="cp932")
     f.write("name,age\n")
     f.write("よし,51\n")
