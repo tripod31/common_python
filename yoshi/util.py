@@ -106,6 +106,24 @@ class DecodeException(Exception):
     pass
 
 '''
+returns end of line chars of string
+
+returns
+    '\r\n,'\n','\r',''(no end of line)
+'''
+def get_eol(s):
+    if re.search('\r\n',s):
+        return '\r\n'
+    
+    if re.search('\n',s):
+        return '\n'
+    
+    if re.search('\r',s):
+        return '\r'
+        
+    return ''
+
+'''
 get encoding of file
 '''
 def get_encoding(path):
@@ -136,12 +154,13 @@ converts encoding of file
 
 to_eol
     end of line which is converted to.
-    '\r\n' or '\n'
+    '\r\n'(CRLF),'\n'(LF).'\r'(CR)
 '''
 def conv_encoding(path,to_enc,to_eol=None):
     org_enc,data = get_encoding(path)
-    if to_eol is not None:
-        data = re.sub('[\r\n]+',to_eol,data)
+    eol = get_eol(data)
+    if to_eol is not None and eol is not None:
+        data = data.replace(eol,to_eol)
     
     #try to encode to bytes.
     #if it can't be encoded,exception raises here,before really writing to file.otherwise file would be destroyed(empty).

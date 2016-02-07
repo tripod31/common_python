@@ -4,17 +4,8 @@
 import unittest
 import os
 
-from yoshi.util import is_match_patterns,filter_arr,zip_files,find_all_files
+from yoshi.util import is_match_patterns,filter_arr,zip_files,find_all_files,conv_encoding
 from yoshi.csv import CsvSqlite,CsvSqla
-
-def create_csv():
-    if not os.path.exists('test'):
-        os.mkdir('test')
-    
-    f=open("test/test_in_sjis.csv","w",encoding="cp932")
-    f.write("name,age\n")
-    f.write("abe,51\n")
-    f.close()
     
 class Test_util(unittest.TestCase):
     def test1(self):
@@ -33,6 +24,15 @@ class Test_util(unittest.TestCase):
         zip_files("test", "test/zipwpath.zip",
                   filter_func=lambda path:is_match_patterns(path, ["\.csv$"])
                 )
+
+def create_csv():
+    if not os.path.exists('test'):
+        os.mkdir('test')
+    
+    with open("test/test_in_sjis.csv","w",encoding="cp932") as f:
+        f.write("name,age\n")
+        f.write("abe,51\n")
+        f.close()
     
 class Test_csvsqlite(unittest.TestCase):
     @classmethod
@@ -101,10 +101,32 @@ class Test_csvsqla(unittest.TestCase):
         
     def tearDown(self):
         pass
+
+
+def create_file(s,enc):
+    if not os.path.exists('test'):
+        os.mkdir('test')
+    
+    with open("test/test.txt","w",encoding=enc,newline='') as f:
+        f.write(s)
+        f.close()
+
+class Test_conv_encoding(unittest.TestCase):
+    def setUp(self):
+        pass
+    
+    def test_encoding(self):
+        create_file('あああ\r\n\r\nいいい\r\n','cp932')
+        conv_encoding('test/test.txt', 'utf-8', '\n')
+        with open("test/test.txt","r",encoding="utf-8",newline='') as f:
+            data = f.read()
+        self.assertEqual(data,'あああ\n\nいいい\n')
         
+            
 if __name__ == '__main__':
     #unittest.main()
     suite = unittest.TestSuite()
-    suite.addTest(Test_csvsqlite('test_csv_sqlite'))
-    suite.addTest(Test_csvsqla('test_csv_sqla'))
+    #suite.addTest(Test_csvsqlite('test_csv_sqlite'))
+    #suite.addTest(Test_csvsqla('test_csv_sqla'))
+    suite.addTest(Test_conv_encoding('test_encoding'))
     unittest.TextTestRunner(verbosity=2).run(suite)
