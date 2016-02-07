@@ -12,6 +12,12 @@ import fnmatch
 import subprocess
 
 '''
+Functions
+=========
+Data
+'''
+
+'''
 get list of common menbers of two lists
 '''
 def get_common_list(list1,list2):
@@ -19,13 +25,11 @@ def get_common_list(list1,list2):
     set2 = set(list2)
     return list(set1 & set2)
 
-def exec_command(cmd,encoding,env=None):
-    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,env=env)
-    p.wait()
-    stdout_data, stderr_data = p.communicate()
-    return p.returncode,\
-        stdout_data.decode(encoding).replace("\r\n","\n"),\
-        stderr_data.decode(encoding).replace("\r\n","\n"),
+'''
+Functions
+=========
+String
+'''
 
 '''
 filter list of string,which matches regular expression
@@ -33,6 +37,16 @@ filter list of string,which matches regular expression
 def filter_arr(arr_str,arr_regex,revert=False):
         return filter(lambda s:xor(is_match_patterns(s, arr_regex),revert),arr_str)
 
+'''
+returns whether contains only ascii charactor,or not
+(ascii chars except controll chars)
+'''
+def is_all_ascii(s):
+    if re.search(r'^[\x20-\x7E]+$',s) is None:
+        return False
+    else:
+        return True
+    
 '''
 returns whether string matches regular expression or not
 '''
@@ -54,6 +68,12 @@ def is_match_patterns_fnmatch(s,arr_pattern):
             bRet=True
             break
     return bRet
+
+'''
+Functions
+=========
+File
+'''
 
 '''
 returns files under directory
@@ -105,6 +125,7 @@ def get_encoding(path):
             f.close()
     if not bSuccess:
         raise DecodeException(path)
+        
     return encoding,data
 
 '''
@@ -115,14 +136,29 @@ to_eol
     '\r\n' or '\n'
 '''
 def conv_encoding(path,to_enc,to_eol=None):
-    try:
-        org_enc,data = get_encoding(path)
-        if to_eol is not None:
-            data = re.sub('[\r\n]+',to_eol,data)
-        
-        with open(path, 'w',encoding=to_enc,newline='') as f:   #newline='',does'nt convert end of line
-            f.write(data)
-            f.close()
+    org_enc,data = get_encoding(path)
+    if to_eol is not None:
+        data = re.sub('[\r\n]+',to_eol,data)
+    
+    #try to encode to bytes.
+    #if it can't be encoded,exception raises here,before really writing to file.otherwise file would be destroyed(empty).
+    byte_arr = data.encode(to_enc)
+    
+    with open(path, 'w',encoding=to_enc,newline='') as f:   #newline='',does'nt convert end of line
+        f.write(data)
+        f.close()
 
-    except Exception as e:
-        raise Exception (path,':',e)
+
+'''
+Functions
+=========
+Process
+'''
+
+def exec_command(cmd,encoding,env=None):
+    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,env=env)
+    p.wait()
+    stdout_data, stderr_data = p.communicate()
+    return p.returncode,\
+        stdout_data.decode(encoding).replace("\r\n","\n"),\
+        stderr_data.decode(encoding).replace("\r\n","\n"),

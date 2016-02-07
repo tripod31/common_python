@@ -11,7 +11,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
 '''
-CSV<-->SqlAlchemyの変換
+convert CSV<-->SqlAlchemy
 '''
 class CsvSqla:
 
@@ -27,12 +27,12 @@ class CsvSqla:
         return self._Session()
 
     '''
-CSV-->SqlAlchemyの変換
-
-CSVのヘッダからsqliteのテーブルを作成
-テーブルにCSVのデータを入れる
-そのテーブルを操作するためのSqlAlchemyのクラスを返す
-sqlalchemyはprimary keyが必須なので、autoincrimentのidカラムを追加
+    convert CSV-->SqlAlchemy
+    
+    create sqlite table from csv header
+    insert csv datas into table
+    returns sqlalchemy class to access to the table
+    sqlalchemy needs primary key,so we add auto-incriment id column
     '''
 
     def csv2sqla(self,csv_file,tablename):
@@ -43,68 +43,68 @@ sqlalchemyはprimary keyが必須なので、autoincrimentのidカラムを追�
             session = self._Session()
             for row in reader:
                 if header:
-                    # CSVのヘッダからsqlalchemyのクラス、sqliteのテーブルを作成
+                    #create sqlite table from csv header
                     header = False
                     
-                    #テーブル名のクラスを定義
-                    Base = declarative_base()   #基底クラス
-                    #sqlalchemyはprimary keyが必須なので、autoincrimentのidカラムを追加
+                    #define class which name is table name
+                    Base = declarative_base()   #base class
+                    #sqlalchemy needs primary key,so we add auto-incriment id column
                     attrs = {
                         '__tablename__':tablename,
                         'id':Column( Integer, Sequence(tablename+'_id_seq'), primary_key=True)
                         }
                     for col in row:
                         attrs[col]=Column(String)
-                    Model = type(tablename,(Base,),attrs)   #クラス定義
-                    Model.metadata.create_all(self._engine) #テーブル作成
+                    Model = type(tablename,(Base,),attrs)   #define class 
+                    Model.metadata.create_all(self._engine) #create table
                     
                     rowlen = len(row)
                 else:
-                    # テーブルにCSVのデータを入れる
+                    #insert csv datas into table
                     if len(row) == rowlen:
                         e = Model()
                         colnames=self.get_col_names(Model.metadata,tablename)
                         for idx in range(0,len(row)):
                             colname = colnames[idx+1]
-                            e.__dict__[colname]=row[idx]    #オブジェクトのメンバを文字列をキーにして設定
+                            e.__dict__[colname]=row[idx]    #set value of object member,using name of the member as key
                             
                         session.add(e)
                 
             session.commit()
-        return Model    #テーブルを操作するためのSqlAlchemyのクラスを返す
+        return Model    #returns sqlalchemy class to access to the table
 
     '''
-CSV<--SqlAlchemyの変換
-
-Model    SqlAlchemyのクラス
+    convert CSV<--SqlAlchemy
+    
+    Model    SqlAlchemy class
     '''
     def sqla2csv(self,Model,csv_file):
         
         with open(csv_file, "w",encoding=self._enc_csv) as f:
             writer = csv.writer(f,lineterminator='\n')
             session = self._Session()
-            #ヘッダー出力
-            tablename = Model.__name__  #クラス名
+            #output header
+            tablename = Model.__name__  #class name
             colnames= self.get_col_names(Model.metadata,tablename)
             writer.writerow(colnames[1:])   #skip first column=id
             
-            #行出力
+            #output rows
             for row in session.query(Model).all():
                 data=[]
                 for idx in range(1,len(colnames)):
                     attr = colnames[idx]
-                    val = row.__dict__[attr]    #オブジェクトのメンバを文字列をキーにして取得
+                    val = row.__dict__[attr]    #get value of object member,using name of the member as key
                     data.append(val)
                 writer.writerow(data)
     
     '''
-テーブルの列名を取得
+    get column names of table
     '''
     def get_col_names(self,metadata,tablename):
         return [ col.name for col in metadata.tables[tablename].columns]
     
 '''
-CSV<-->Sqliteの変換
+convert CSV<-->Sqlite
 '''
 class CsvSqlite:
 
@@ -130,17 +130,17 @@ class CsvSqlite:
             header = True
             for row in reader:
                 if header:
-                    # ヘッダー処理
+                    #process header
                     header = False
                     
-                    #テーブル作成
+                    #create table
                     sql = "DROP TABLE IF EXISTS %s" % tablename
                     c.execute(sql)
                     sql = "CREATE TABLE %s (%s)" % (tablename,
                               ", ".join([ "%s text" % column for column in row ]))
                     c.execute(sql)
 
-                    #*_idという名前のカラムにインデックス作成
+                    #create index to the columns which names are *_id
                     for column in row:
                         if column.lower().endswith("_id"):
                             index = "%s__%s" % ( tablename, column )
@@ -152,7 +152,7 @@ class CsvSqlite:
 
                     rowlen = len(row)
                 else:
-                    # 行データ入力
+                    # insert row
                     if len(row) == rowlen:
                         c.execute(insertsql, row)
 
@@ -164,11 +164,11 @@ class CsvSqlite:
         csr=self._conn.execute('SELECT * FROM %(tablename)s' % locals())
         with open(csv_file, "w",encoding=self._enc_csv) as f:
             writer = csv.writer(f,lineterminator='\n')
-            #ヘッダー出力
+            #output header
             row = list(map(lambda cols:cols[0],csr.description))
             writer.writerow(row)
 
-            #行出力
+            #output row
             for row in csr:
                 writer.writerow(row)
         csr.close()
