@@ -128,6 +128,9 @@ def get_encoding(path):
         
     return encoding,data
 
+class EncodeException(Exception):
+    pass
+
 '''
 converts encoding of file
 
@@ -148,7 +151,13 @@ def conv_encoding(path,to_enc,to_eol=None):
         f.write(data)
         f.close()
 
-
+    #verify
+    with open(path,"r",encoding=to_enc,newline='') as f:
+        data_new=f.read()
+    
+    if data_new != data:
+        raise EncodeException("verify data failed.") 
+        
 '''
 Functions
 =========
