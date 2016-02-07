@@ -13,8 +13,7 @@ def create_csv():
     
     f=open("test/test_in_sjis.csv","w",encoding="cp932")
     f.write("name,age\n")
-    f.write("よし,51\n")
-    f.write("よしの,53\n")
+    f.write("abe,51\n")
     f.close()
     
 class Test_util(unittest.TestCase):
@@ -47,13 +46,13 @@ class Test_csvsqlite(unittest.TestCase):
         #読み込み
         obj = CsvSqlite()
         obj.csv2sqlite("test/test_in_sjis.csv","table1")
-        csr = obj.connection.execute('select * from table1 where name="よし"')
+        csr = obj.connection.execute('select * from table1 where name="abe"')
         row = csr.fetchone()
-        self.assertEqual(row[0],"よし")
+        self.assertEqual(row[0],"abe")
         self.assertEqual(row[1],"51")
         
         #変更
-        obj.connection.execute('update table1 set age=52 where name="よし"')
+        obj.connection.execute('update table1 set age=52 where name="abe"')
         obj.connection.commit()
         
         #書き込み             
@@ -62,9 +61,9 @@ class Test_csvsqlite(unittest.TestCase):
         #再読み込み
         obj = CsvSqlite()
         obj.csv2sqlite("test/test_out_sjis.csv","table1")
-        csr = obj.connection.execute('select * from table1 where name="よし"')
+        csr = obj.connection.execute('select * from table1 where name="abe"')
         row = csr.fetchone()
-        self.assertEqual(row[0],"よし")
+        self.assertEqual(row[0],"abe")
         self.assertEqual(row[1],"52")
     
     
@@ -82,7 +81,7 @@ class Test_csvsqla(unittest.TestCase):
         Model=obj.csv2sqla("test/test_in_sjis.csv","table1")
         session = obj.get_session()
         row = session.query(Model).first()
-        self.assertEqual(row.name,"よし")
+        self.assertEqual(row.name,"abe")
         self.assertEqual(row.age,"51")
         
         #変更
@@ -97,7 +96,7 @@ class Test_csvsqla(unittest.TestCase):
         Model=obj.csv2sqla("test/test_out_sjis.csv","table1")
         session = obj.get_session()
         row = session.query(Model).first()
-        self.assertEqual(row.name,"よし")
+        self.assertEqual(row.name,"abe")
         self.assertEqual(row.age,"52")        
         
     def tearDown(self):
