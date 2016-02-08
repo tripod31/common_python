@@ -10,6 +10,8 @@ from operator import xor
 import zipfile
 import fnmatch
 import subprocess
+import tempfile
+import shutil
 
 '''
 Functions
@@ -159,24 +161,33 @@ to_eol
 def conv_encoding(path,to_enc,to_eol=None):
     org_enc,data = get_encoding(path)
     eol = get_eol(data)
+    
+    #convert eol
     if to_eol is not None and eol is not None:
         data = data.replace(eol,to_eol)
-    
-    #try to encode to bytes.
-    #if it can't be encoded,exception raises here,before really writing to file.otherwise file would be destroyed(empty).
-    byte_arr = data.encode(to_enc)
-    
-    with open(path, 'w',encoding=to_enc,newline='') as f:   #newline='',does'nt convert end of line
-        f.write(data)
-        f.close()
 
-    #verify
-    with open(path,"r",encoding=to_enc,newline='') as f:
-        data_new=f.read()
+    #write data to tempfile    
+    byte_arr = data.encode(to_enc)
+    temp_file= tempfile.mkstemp()
+    ft = os.fdopen(temp_file[0],mode='w+b') #binary mode,to prevent end of line to be changed
+    ft.write(byte_arr)
+    
+    #verify data
+    ft.seek(0)
+    new_bytes = ft.read()
+    ft.close()
+    data_new =new_bytes.decode(to_enc)
     
     if data_new != data:
-        raise EncodeException("verify data failed.") 
+        raise EncodeException('verify data failed')
+    
+    try:    
+        shutil.copyfile(temp_file[1], path)
+    except Exception as e:
+        print (str(e))
         
+    os.remove(temp_file[1])
+    
 '''
 Functions
 =========
