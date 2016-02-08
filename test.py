@@ -43,7 +43,7 @@ class Test_csvsqlite(unittest.TestCase):
         pass
     
     def test_csv_sqlite(self):
-        #読み込み
+        #read csv
         obj = CsvSqlite()
         obj.csv2sqlite("test/test_in_sjis.csv","table1")
         csr = obj.connection.execute('select * from table1 where name="abe"')
@@ -51,14 +51,14 @@ class Test_csvsqlite(unittest.TestCase):
         self.assertEqual(row[0],"abe")
         self.assertEqual(row[1],"51")
         
-        #変更
+        #modify data
         obj.connection.execute('update table1 set age=52 where name="abe"')
         obj.connection.commit()
         
-        #書き込み             
+        #write csv    
         obj.sqlite2csv("test/test_out_sjis.csv","table1")
     
-        #再読み込み
+        #read csv again
         obj = CsvSqlite()
         obj.csv2sqlite("test/test_out_sjis.csv","table1")
         csr = obj.connection.execute('select * from table1 where name="abe"')
@@ -76,7 +76,7 @@ class Test_csvsqla(unittest.TestCase):
     
     def test_csv_sqla(self):
 
-        #読み込み
+        #read csv
         obj = CsvSqla()
         Model=obj.csv2sqla("test/test_in_sjis.csv","table1")
         session = obj.get_session()
@@ -84,14 +84,14 @@ class Test_csvsqla(unittest.TestCase):
         self.assertEqual(row.name,"abe")
         self.assertEqual(row.age,"51")
         
-        #変更
+        #modify data
         row.age = 52
         session.commit()          
         
-        #書き込み
+        #write csv
         obj.sqla2csv(Model,"test/test_out_sjis.csv",)
         
-        #再度読み込み
+        #read csv again
         obj = CsvSqla()
         Model=obj.csv2sqla("test/test_out_sjis.csv","table1")
         session = obj.get_session()
@@ -122,11 +122,10 @@ class Test_conv_encoding(unittest.TestCase):
             data = f.read()
         self.assertEqual(data,'あああ\n\nいいい\n')
         
-            
 if __name__ == '__main__':
-    #unittest.main()
+    unittest.main()
+    '''
     suite = unittest.TestSuite()
-    #suite.addTest(Test_csvsqlite('test_csv_sqlite'))
-    #suite.addTest(Test_csvsqla('test_csv_sqla'))
     suite.addTest(Test_conv_encoding('test_encoding'))
     unittest.TextTestRunner(verbosity=2).run(suite)
+    '''
