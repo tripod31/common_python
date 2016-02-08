@@ -32,7 +32,36 @@ Functions
 =========
 String
 '''
+'''
+display two dimension array
+Each column length is adjusted to max length of data
 
+arr
+    two dimension array of strings,columns(list) x rows(list)
+format
+    format of output
+'''
+def print_arr(arr,p_format):
+    if len(arr)==0:
+        return
+    
+    row_len=len(arr[0])
+    max_len=[0]*row_len
+
+    #get max length of columns
+    for row in arr:
+        for idx in range(0,row_len):
+            if max_len[idx] < len(row[idx]):
+                max_len[idx] = len(row[idx])
+    #print
+    for row in arr:
+        for idx in range(0,len(row)):
+            col = row[idx]
+            col = col + " " * (max_len[idx]-len(col))
+            row[idx]=col
+        line = p_format % tuple(row)
+        print(line)
+    
 '''
 filter list of string,which matches regular expression
 '''
@@ -183,6 +212,43 @@ def conv_encoding(path,to_enc,to_eol=None):
     
     try:    
         shutil.copyfile(temp_file[1], path)
+    except Exception as e:
+        print (str(e))
+        
+    os.remove(temp_file[1])
+
+'''
+replace string in file
+'''
+def replace_str(file,from_str,to_str):
+    hit =False
+    try:
+        enc,data = get_encoding(file)
+        if data.find(from_str) != -1:
+            hit = True
+        
+            data = data.replace(from_str, to_str)
+            bytes_data = data.encode(enc) 
+            temp_file= tempfile.mkstemp()
+            ft = os.fdopen(temp_file[0],mode='w+b') #binary mode,to prevent end of line to be changed
+            ft.write(bytes_data)
+    except Exception as e:
+        print(str(e))
+        return
+    
+    if not hit:
+        return
+    
+    #verify data
+    ft.seek(0)
+    new_bytes = ft.read()
+    ft.close()
+    data_new =new_bytes.decode(enc)
+    
+    if data_new != data:
+        raise EncodeException('verify data failed')
+    try:
+        shutil.copyfile(temp_file[1], file)
     except Exception as e:
         print (str(e))
         
