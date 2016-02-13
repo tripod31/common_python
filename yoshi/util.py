@@ -32,8 +32,9 @@ Functions
 =========
 String
 '''
+
 '''
-display two dimension array
+display strings in two dimension array
 Each column length is adjusted to max length of data
 
 arr
