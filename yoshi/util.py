@@ -263,7 +263,7 @@ Process
 
 def exec_command(cmd,encoding,env=None):
     p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,env=env)
-    p.wait()
+    #p.wait()
     stdout_data, stderr_data = p.communicate()
     return p.returncode,\
         stdout_data.decode(encoding).replace("\r\n","\n"),\
