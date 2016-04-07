@@ -121,11 +121,11 @@ class CsvSqlite:
     def __del__(self):
         self._conn.close()
 
-    def csv2sqlite(self,csv_file,tablename):
+    def csv2sqlite(self,csv_file,tablename,delimiter=','):
         c = self._conn.cursor()
 
         with open(csv_file, "r",encoding=self._enc_csv) as f:
-            reader = csv.reader(f)
+            reader = csv.reader(f,delimiter=delimiter)
 
             header = True
             for row in reader:
