@@ -9,11 +9,15 @@ misc functions
 CSV  
 -----
 read CSV file into sqlite/sqlalchemy object
-#### required libraries
+### required libraries
 + sqlalchemy
 
-#### class CsvSqla
+### class CsvSqla
 convert CSV<-->SqlAlchemy
 
-#### class CsvSqlite
+### class CsvSqlite
 convert CSV<-->Sqlite
+
+#### converting CSV-->Sqlite
+All columns are converted to TEXT Columns.
+When Column has name like "*_id",index is added to it.
