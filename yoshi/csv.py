@@ -11,14 +11,92 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
 '''
+convert CSV<-->Sqlite
+'''
+class CsvSqlite:
+
+    @property
+    def connection(self):
+        return self._conn
+    
+    '''
+    :param    fmt:    dictinary.passed to csv.reader/writer as format parameters
+    '''
+    def __init__(self,db_file=":memory:",enc_csv="cp932",fmt={}):
+        self._db_file=db_file
+        self._enc_csv = enc_csv
+        self._conn = sqlite3.connect(self._db_file)
+        self._conn.text_factory = str  # allows utf-8 data to be stored
+        self._fmt = fmt
+
+    def __del__(self):
+        self._conn.close()
+
+    def csv2sqlite(self,csv_file,tablename):
+        c = self._conn.cursor()
+
+        with open(csv_file, "r",encoding=self._enc_csv) as f:
+            reader = csv.reader(f,**self._fmt)
+
+            header = True
+            for row in reader:
+                if header:
+                    #process header
+                    header = False
+                    
+                    #create table
+                    sql = "DROP TABLE IF EXISTS %s" % tablename
+                    c.execute(sql)
+                    sql = "CREATE TABLE %s (%s)" % (tablename,
+                              ", ".join([ "%s text" % column for column in row ]))
+                    c.execute(sql)
+
+                    #create index to the columns which names are *_id
+                    for column in row:
+                        if column.lower().endswith("_id"):
+                            index = "%s__%s" % ( tablename, column )
+                            sql = "CREATE INDEX %s on %s (%s)" % ( index, tablename, column )
+                            c.execute(sql)
+
+                    insertsql = "INSERT INTO %s VALUES (%s)" % (tablename,
+                                ", ".join([ "?" for column in row ]))
+
+                    rowlen = len(row)
+                else:
+                    # insert row
+                    if len(row) == rowlen:
+                        c.execute(insertsql, row)
+
+            self._conn.commit()
+
+        c.close()
+
+    def sqlite2csv(self,csv_file,tablename):
+        csr=self._conn.execute('SELECT * FROM %(tablename)s' % locals())
+        with open(csv_file, "w",encoding=self._enc_csv) as f:
+            writer = csv.writer(f,lineterminator='\n',**self._fmt)
+            #output header
+            row = list(map(lambda cols:cols[0],csr.description))
+            writer.writerow(row)
+
+            #output row
+            for row in csr:
+                writer.writerow(row)
+        csr.close()
+
+'''
 convert CSV<-->SqlAlchemy
 '''
 class CsvSqla:
 
-    def __init__(self,db_file="sqlite:///:memory:",enc_csv="cp932",p_echo=True):
+    '''
+    :param    fmt:    dictinary.passed to csv.reader/writer as format parameters
+    '''
+    def __init__(self,db_file="sqlite:///:memory:",enc_csv="cp932",p_echo=True,fmt={}):
         self._engine = create_engine(db_file, echo=p_echo)
         self._Session = sessionmaker(bind=self._engine) #Sessionクラス
         self._enc_csv = enc_csv
+        self._fmt = fmt
 
     def __del__(self):
         pass
@@ -37,7 +115,7 @@ class CsvSqla:
 
     def csv2sqla(self,csv_file,tablename):
         with open(csv_file, "r",encoding=self._enc_csv) as f:
-            reader = csv.reader(f)
+            reader = csv.reader(f,**self._fmt)
 
             header = True
             session = self._Session()
@@ -81,7 +159,7 @@ class CsvSqla:
     def sqla2csv(self,Model,csv_file):
         
         with open(csv_file, "w",encoding=self._enc_csv) as f:
-            writer = csv.writer(f,lineterminator='\n')
+            writer = csv.writer(f,lineterminator='\n',**self._fmt)
             session = self._Session()
             #output header
             tablename = Model.__name__  #class name
@@ -103,73 +181,4 @@ class CsvSqla:
     def get_col_names(self,metadata,tablename):
         return [ col.name for col in metadata.tables[tablename].columns]
     
-'''
-convert CSV<-->Sqlite
-'''
-class CsvSqlite:
-
-    @property
-    def connection(self):
-        return self._conn
-
-    def __init__(self,db_file=":memory:",enc_csv="cp932"):
-        self._db_file=db_file
-        self._enc_csv = enc_csv
-        self._conn = sqlite3.connect(self._db_file)
-        self._conn.text_factory = str  # allows utf-8 data to be stored
-
-    def __del__(self):
-        self._conn.close()
-
-    def csv2sqlite(self,csv_file,tablename,delimiter=','):
-        c = self._conn.cursor()
-
-        with open(csv_file, "r",encoding=self._enc_csv) as f:
-            reader = csv.reader(f,delimiter=delimiter)
-
-            header = True
-            for row in reader:
-                if header:
-                    #process header
-                    header = False
-                    
-                    #create table
-                    sql = "DROP TABLE IF EXISTS %s" % tablename
-                    c.execute(sql)
-                    sql = "CREATE TABLE %s (%s)" % (tablename,
-                              ", ".join([ "%s text" % column for column in row ]))
-                    c.execute(sql)
-
-                    #create index to the columns which names are *_id
-                    for column in row:
-                        if column.lower().endswith("_id"):
-                            index = "%s__%s" % ( tablename, column )
-                            sql = "CREATE INDEX %s on %s (%s)" % ( index, tablename, column )
-                            c.execute(sql)
-
-                    insertsql = "INSERT INTO %s VALUES (%s)" % (tablename,
-                                ", ".join([ "?" for column in row ]))
-
-                    rowlen = len(row)
-                else:
-                    # insert row
-                    if len(row) == rowlen:
-                        c.execute(insertsql, row)
-
-            self._conn.commit()
-
-        c.close()
-
-    def sqlite2csv(self,csv_file,tablename):
-        csr=self._conn.execute('SELECT * FROM %(tablename)s' % locals())
-        with open(csv_file, "w",encoding=self._enc_csv) as f:
-            writer = csv.writer(f,lineterminator='\n')
-            #output header
-            row = list(map(lambda cols:cols[0],csr.description))
-            writer.writerow(row)
-
-            #output row
-            for row in csr:
-                writer.writerow(row)
-        csr.close()
 

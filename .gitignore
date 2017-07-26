@@ -6,3 +6,4 @@ __pycache__/*
 
 /test/
 /test.xml
+/build.gradle
