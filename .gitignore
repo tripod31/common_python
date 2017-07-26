@@ -1,5 +1,3 @@
-.project
-.pydev*
 .git/
 .settings/
 .*.html
