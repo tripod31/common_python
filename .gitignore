@@ -1,6 +1,8 @@
 .git/
 .settings/
+.gradle/
 .*.html
+
 __pycache__/*
 *.pyc
 
