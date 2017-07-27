@@ -26,12 +26,22 @@ class CsvSqlite:
         self._db_file=db_file
         self._enc_csv = enc_csv
         self._conn = sqlite3.connect(self._db_file)
-        self._conn.text_factory = str  # allows utf-8 data to be stored
+        self._conn.text_factory = str           # allows utf-8 data to be stored
+        self._conn.row_factory = sqlite3.Row    #to enable access by column name,like row['name']
         self._fmt = fmt
 
     def __del__(self):
         self._conn.close()
 
+    '''
+    Convert CSV --> Sqlite
+    
+    create sqlite table from csv header,asumming that first line is header.
+    Add auto-incriment "_id_" column as first column,as primary key.All the other columns are text columns.
+    create index to the columns which names are '*_id'.
+    
+    insert csv datas into table.
+    '''
     def csv2sqlite(self,csv_file,tablename):
         c = self._conn.cursor()
 
@@ -48,18 +58,19 @@ class CsvSqlite:
                     sql = "DROP TABLE IF EXISTS %s" % tablename
                     c.execute(sql)
                     sql = "CREATE TABLE %s (%s)" % (tablename,
-                              ", ".join([ "%s text" % column for column in row ]))
+                            "_id_ INTEGER PRIMARY KEY AUTOINCREMENT,"+
+                            ",".join([ "%s text" % column for column in row ]))
                     c.execute(sql)
 
-                    #create index to the columns which names are *_id
+                    #create index to the columns which names are '*_id'
                     for column in row:
                         if column.lower().endswith("_id"):
                             index = "%s__%s" % ( tablename, column )
                             sql = "CREATE INDEX %s on %s (%s)" % ( index, tablename, column )
                             c.execute(sql)
-
-                    insertsql = "INSERT INTO %s VALUES (%s)" % (tablename,
-                                ", ".join([ "?" for column in row ]))
+                    
+                    insertsql = "INSERT INTO %s VALUES (NULL,%s)" % (tablename,
+                                ",".join(["?"]*len(row) ))           #NULL for _id_,which is auto increment column
 
                     rowlen = len(row)
                 else:
@@ -76,12 +87,12 @@ class CsvSqlite:
         with open(csv_file, "w",encoding=self._enc_csv) as f:
             writer = csv.writer(f,lineterminator='\n',**self._fmt)
             #output header
-            row = list(map(lambda cols:cols[0],csr.description))
-            writer.writerow(row)
+            colnames = list(map(lambda cols:cols[0],csr.description))
+            writer.writerow(colnames[1:])   #skip first column=id
 
             #output row
             for row in csr:
-                writer.writerow(row)
+                writer.writerow(row[1:])    #skip first column=id
         csr.close()
 
 '''
@@ -107,10 +118,12 @@ class CsvSqla:
     '''
     convert CSV-->SqlAlchemy
     
-    create sqlite table from csv header
-    insert csv datas into table
-    returns sqlalchemy class to access to the table
-    sqlalchemy needs primary key,so we add auto-incriment id column
+    create sqlite table from csv header,asumming that first line is header.
+    All columns are text columns.
+    sqlalchemy needs primary key,so we add auto-incriment "_id_" column.    
+    
+    insert csv datas into table.
+    returns sqlalchemy class to access to the table.
     '''
 
     def csv2sqla(self,csv_file,tablename):
@@ -124,15 +137,15 @@ class CsvSqla:
                     #create sqlite table from csv header
                     header = False
                     
-                    #define class which name is table name
+                    #define class dynamically,which name is table name
                     Base = declarative_base()   #base class
                     #sqlalchemy needs primary key,so we add auto-incriment id column
                     attrs = {
                         '__tablename__':tablename,
-                        'id':Column( Integer, Sequence(tablename+'_id_seq'), primary_key=True)
+                        '_id_':Column( Integer, Sequence(tablename+'_id_seq'), primary_key=True)
                         }
                     for col in row:
-                        attrs[col]=Column(String)
+                        attrs[col]=Column(String)           #all column as string
                     Model = type(tablename,(Base,),attrs)   #define class 
                     Model.metadata.create_all(self._engine) #create table
                     

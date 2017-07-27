@@ -12,12 +12,15 @@ read CSV file into sqlite/sqlalchemy object
 ### required libraries
 + sqlalchemy
 
-### class CsvSqla
-convert CSV<-->SqlAlchemy
-
 ### class CsvSqlite
 convert CSV<-->Sqlite
 
-#### converting CSV-->Sqlite
-All columns are converted to TEXT Columns.
-When Column has name like "*_id",index is added to it.
+#### convert CSV --> Sqlite
+
+Create sqlite table from csv header,asumming that first line is header.
+Add auto-incriment "_id_" column as first column,as primary key.this is because we need primary key to update data by SQL.
+All the other columns are text columns.
+Create index to the columns which names are '*_id'.
+
+### class CsvSqla
+convert CSV<-->SqlAlchemy

@@ -48,8 +48,8 @@ class Test_csvsqlite(unittest.TestCase):
         obj.csv2sqlite("test/test_in_sjis.csv","table1")
         csr = obj.connection.execute('select * from table1 where name="abe"')
         row = csr.fetchone()
-        self.assertEqual(row[0],"abe")
-        self.assertEqual(row[1],"51")
+        self.assertEqual(row['name'],"abe")
+        self.assertEqual(row['age'],"51")
         
         #modify data
         obj.connection.execute('update table1 set age=52 where name="abe"')
@@ -63,8 +63,8 @@ class Test_csvsqlite(unittest.TestCase):
         obj.csv2sqlite("test/test_out_sjis.csv","table1")
         csr = obj.connection.execute('select * from table1 where name="abe"')
         row = csr.fetchone()
-        self.assertEqual(row[0],"abe")
-        self.assertEqual(row[1],"52")
+        self.assertEqual(row['name'],"abe")
+        self.assertEqual(row['age'],"52")
     
     
     def tearDown(self):
