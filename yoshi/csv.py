@@ -36,9 +36,9 @@ class CsvSqlite:
     '''
     Convert CSV --> Sqlite
     
-    create sqlite table from csv header,asumming that first line is header.
-    Add auto-incriment "_id_" column as first column,as primary key.All the other columns are text columns.
-    create index to the columns which names are '*_id'.
+    Create sqlite table from csv header,asumming that first line is header.
+    All the other columns are text columns.
+    Create index to the columns which names are '*_id'.
     
     insert csv datas into table.
     '''
@@ -58,8 +58,7 @@ class CsvSqlite:
                     sql = "DROP TABLE IF EXISTS %s" % tablename
                     c.execute(sql)
                     sql = "CREATE TABLE %s (%s)" % (tablename,
-                            "_id_ INTEGER PRIMARY KEY AUTOINCREMENT,"+
-                            ",".join([ "%s text" % column for column in row ]))
+                            ",".join([ "%s TEXT" % column for column in row ]))
                     c.execute(sql)
 
                     #create index to the columns which names are '*_id'
@@ -69,8 +68,8 @@ class CsvSqlite:
                             sql = "CREATE INDEX %s on %s (%s)" % ( index, tablename, column )
                             c.execute(sql)
                     
-                    insertsql = "INSERT INTO %s VALUES (NULL,%s)" % (tablename,
-                                ",".join(["?"]*len(row) ))           #NULL for _id_,which is auto increment column
+                    insertsql = "INSERT INTO %s VALUES (%s)" % (tablename,
+                                ",".join(["?"]*len(row) ))
 
                     rowlen = len(row)
                 else:
@@ -88,11 +87,11 @@ class CsvSqlite:
             writer = csv.writer(f,lineterminator='\n',**self._fmt)
             #output header
             colnames = list(map(lambda cols:cols[0],csr.description))
-            writer.writerow(colnames[1:])   #skip first column=id
+            writer.writerow(colnames)
 
             #output row
             for row in csr:
-                writer.writerow(row[1:])    #skip first column=id
+                writer.writerow(row)
         csr.close()
 
 '''
@@ -118,12 +117,12 @@ class CsvSqla:
     '''
     convert CSV-->SqlAlchemy
     
-    create sqlite table from csv header,asumming that first line is header.
+    Create sqlite table from csv header,asumming that first line is header.
     All columns are text columns.
-    sqlalchemy needs primary key,so we add auto-incriment "_id_" column.    
+    SqlAlchemy needs primary key,so we add auto-incriment "_id_" column.    
     
     insert csv datas into table.
-    returns sqlalchemy class to access to the table.
+    returns SqlAlchemy class to access to the table.
     '''
 
     def csv2sqla(self,csv_file,tablename):
@@ -193,5 +192,3 @@ class CsvSqla:
     '''
     def get_col_names(self,metadata,tablename):
         return [ col.name for col in metadata.tables[tablename].columns]
-    
-
