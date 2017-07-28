@@ -44,7 +44,7 @@ class Test_csvsqlite(unittest.TestCase):
     
     def test_csv_sqlite(self):
         #read csv
-        obj = CsvSqlite()
+        obj = CsvSqlite(enc_csv='cp932')
         obj.csv2sqlite("test/test_in_sjis.csv","table1")
         csr = obj.connection.execute('select * from table1 where name="abe"')
         row = csr.fetchone()
@@ -77,7 +77,7 @@ class Test_csvsqla(unittest.TestCase):
     def test_csv_sqla(self):
 
         #read csv
-        obj = CsvSqla()
+        obj = CsvSqla(enc_csv='cp932')
         Model=obj.csv2sqla("test/test_in_sjis.csv","table1")
         session = obj.get_session()
         row = session.query(Model).first()

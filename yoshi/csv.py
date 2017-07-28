@@ -22,7 +22,7 @@ class CsvSqlite:
     '''
     :param    fmt:    dictinary.passed to csv.reader/writer as format parameters
     '''
-    def __init__(self,db_file=":memory:",enc_csv="cp932",fmt={}):
+    def __init__(self,db_file=":memory:",enc_csv="utf-8",fmt={}):
         self._db_file=db_file
         self._enc_csv = enc_csv
         self._conn = sqlite3.connect(self._db_file)
@@ -102,7 +102,7 @@ class CsvSqla:
     '''
     :param    fmt:    dictinary.passed to csv.reader/writer as format parameters
     '''
-    def __init__(self,db_file="sqlite:///:memory:",enc_csv="cp932",p_echo=False,fmt={}):
+    def __init__(self,db_file="sqlite:///:memory:",enc_csv="utf-8",p_echo=False,fmt={}):
         self._engine = create_engine(db_file, echo=p_echo)
         self._Session = sessionmaker(bind=self._engine) #Sessionクラス
         self._enc_csv = enc_csv
