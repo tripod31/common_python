@@ -9,6 +9,8 @@ import sqlite3
 from sqlalchemy import Column, Integer, String,  create_engine,Sequence
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
+from builtins import isinstance
+import io
 
 '''
 convert CSV <--> Sqlite
@@ -42,13 +44,15 @@ class CsvSqlite:
     Create sqlite table from csv header.
     All the other columns are text columns.
     Create index to the columns which names are '*_id'.
-    
     insert csv datas into table.
+    
+    :param    csv_file:str of file name,or file object
+    :param    tablename:name of the table that csv datas are imported to
     '''
     def csv2sqlite(self,csv_file,tablename):
-        c = self._conn.cursor()
-
-        with open(csv_file, "r",encoding=self._enc_csv) as f:
+        #f:file object to read csv file        
+        def proc(f):
+            c = self._conn.cursor()
             reader = csv.reader(f,**self._fmt)
 
             header = True
@@ -87,12 +91,25 @@ class CsvSqlite:
                         c.execute(insertsql, row)
 
             self._conn.commit()
-
-        c.close()
-
+            c.close()
+        
+        #main
+        if isinstance(csv_file,str):
+            with open(csv_file, "r",encoding=self._enc_csv) as f:
+                proc(f)
+        elif isinstance(csv_file,io.IOBase):
+            proc(csv_file)
+        else:
+            raise ValueError("parameter 'csv_file' is'nt string or file object")
+    
+    '''
+    :param    csv_file:str of file name,or file object
+    :param    tablename:name of the table that csv datas are exported from
+    '''
     def sqlite2csv(self,csv_file,tablename):
-        csr=self._conn.execute('SELECT * FROM %(tablename)s' % locals())
-        with open(csv_file, "w",encoding=self._enc_csv) as f:
+        #f:file object to read csv file
+        def proc(f):
+            csr=self._conn.execute('SELECT * FROM %s' % tablename)
             writer = csv.writer(f,lineterminator='\n',**self._fmt)
             
             if self._header:
@@ -103,8 +120,17 @@ class CsvSqlite:
             #output row
             for row in csr:
                 writer.writerow(row)
-        csr.close()
-
+            csr.close()
+        
+        #main
+        if isinstance(csv_file,str):
+            with open(csv_file, "w",encoding=self._enc_csv) as f:
+                proc(f)
+        elif isinstance(csv_file,io.IOBase):
+            proc(csv_file)
+        else:
+            raise ValueError("parameter 'csv_file' is'nt string or file object")
+                    
 '''
 convert CSV <--> SqlAlchemy
 '''
@@ -140,7 +166,8 @@ class CsvSqla:
     '''
 
     def csv2sqla(self,csv_file,tablename):
-        with open(csv_file, "r",encoding=self._enc_csv) as f:
+        #f:file object to read csv file        
+        def proc(f):
             reader = csv.reader(f,**self._fmt)
 
             header = True
@@ -178,6 +205,17 @@ class CsvSqla:
                         self.insert_row(Model, tablename, row,session)
                 
             session.commit()
+            return Model
+        
+        #main
+        if isinstance(csv_file,str):
+            with open(csv_file, "r",encoding=self._enc_csv) as f:
+                Model=proc(f)
+        elif isinstance(csv_file,io.IOBase):
+            Model=proc(csv_file)
+        else:
+            raise ValueError("parameter 'csv_file' is'nt string or file object")
+        
         return Model    #returns sqlalchemy class to access to the table
 
     def insert_row(self,Model,tablename,row,session):
@@ -195,8 +233,8 @@ class CsvSqla:
     Model    SqlAlchemy class
     '''
     def sqla2csv(self,Model,csv_file):
-        
-        with open(csv_file, "w",encoding=self._enc_csv) as f:
+        #f:file object to read csv file        
+        def proc(f):
             writer = csv.writer(f,lineterminator='\n',**self._fmt)
             session = self._Session()
             tablename = Model.__name__  #class name
@@ -214,7 +252,16 @@ class CsvSqla:
                     val = row.__dict__[attr]    #get value of object member,using name of the member as key
                     data.append(val)
                 writer.writerow(data)
-    
+        
+        #main
+        if isinstance(csv_file,str):
+            with open(csv_file, "w",encoding=self._enc_csv) as f:
+                proc(f)
+        elif isinstance(csv_file,io.IOBase):
+            proc(csv_file)
+        else:
+            raise ValueError("parameter 'csv_file' is'nt string or file object")
+            
     '''
     get column names of table
     '''
