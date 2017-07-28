@@ -23,7 +23,7 @@ class CsvSqlite:
     
     '''
     :param    enc_csv:csv encoding
-    :param    header:When true,It asume that first line of csv is header
+    :param    header:When true,It asume that first line of csv is header.When false,column names are 'col0','col1'...
     :param    fmt:dictinary.passed to csv.reader/writer as format parameters
     '''
     def __init__(self,db_file=":memory:",enc_csv="utf-8",header=True,fmt={}):
@@ -81,7 +81,7 @@ class CsvSqlite:
                     else:
                         #create table
                         #names of columns are 'COL0','COL1',...
-                        sql = "CREATE TABLE %s (%s)" % (tablename,",".join([ "COL%d" % i for i in range(0,len(row)) ]))
+                        sql = "CREATE TABLE %s (%s)" % (tablename,",".join([ "col%d" % i for i in range(0,len(row)) ]))
                         c.execute(sql)
                         
                         c.execute(insertsql, row)

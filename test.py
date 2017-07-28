@@ -18,9 +18,6 @@ class Test_util(unittest.TestCase):
         l= list(filter_arr(["abc","def","ghi"], ["bc"],True))
         self.assertListEqual(l, ["def","ghi"])
     def test4(self):
-        arr_path=list(filter_arr(find_all_files("test"),["\.csv$"]));
-        print(arr_path)
-    def test5(self):
         zip_files("test", "test/zipwpath.zip",
                   filter_func=lambda path:is_match_patterns(path, ["\.csv$"])
                 )
