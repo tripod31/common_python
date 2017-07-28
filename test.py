@@ -34,6 +34,11 @@ def create_csv():
         f.write("abe,51\n")
         f.close()
     
+    with open("test/test_in_sjis2.csv","w",encoding="cp932") as f:
+        f.write("abe,51\n")
+        f.write("yoshi,32\n")
+        f.close()
+           
 class Test_csvsqlite(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -42,6 +47,9 @@ class Test_csvsqlite(unittest.TestCase):
     def setUp(self):
         pass
     
+    '''
+    read csv with header
+    '''
     def test_csv_sqlite(self):
         #read csv
         obj = CsvSqlite(enc_csv='cp932')
@@ -59,13 +67,39 @@ class Test_csvsqlite(unittest.TestCase):
         obj.sqlite2csv("test/test_out_sjis.csv","table1")
     
         #read csv again
-        obj = CsvSqlite()
+        obj = CsvSqlite(enc_csv='cp932')
         obj.csv2sqlite("test/test_out_sjis.csv","table1")
         csr = obj.connection.execute('select * from table1 where name="abe"')
         row = csr.fetchone()
         self.assertEqual(row['name'],"abe")
         self.assertEqual(row['age'],"52")
     
+    '''
+    read csv without header
+    '''
+    def test_csv_sqlite_2(self):
+        #read csv
+        obj = CsvSqlite(enc_csv='cp932',header=False)
+        obj.csv2sqlite("test/test_in_sjis2.csv","table1")
+        csr = obj.connection.execute('select * from table1 where col0="abe"')
+        row = csr.fetchone()
+        self.assertEqual(row['col0'],"abe")
+        self.assertEqual(row['col1'],"51")
+        
+        #modify data
+        obj.connection.execute('update table1 set col1=52 where col0="abe"')
+        obj.connection.commit()
+        
+        #write csv    
+        obj.sqlite2csv("test/test_out_sjis2.csv","table1")
+    
+        #read csv again
+        obj = CsvSqlite(enc_csv='cp932',header=False)
+        obj.csv2sqlite("test/test_out_sjis2.csv","table1")
+        csr = obj.connection.execute('select * from table1 where col0 ="abe"')
+        row = csr.fetchone()
+        self.assertEqual(row['col0'],"abe")
+        self.assertEqual(row['col1'],"52")    
     
     def tearDown(self):
         pass
@@ -98,6 +132,34 @@ class Test_csvsqla(unittest.TestCase):
         row = session.query(Model).first()
         self.assertEqual(row.name,"abe")
         self.assertEqual(row.age,"52")        
+    
+    '''
+    read csv without header
+    '''
+    def test_csv_sqla2(self):
+
+        #read csv
+        obj = CsvSqla(enc_csv='cp932',header=False)
+        Model=obj.csv2sqla("test/test_in_sjis2.csv","table1")
+        session = obj.get_session()
+        row = session.query(Model).first()
+        self.assertEqual(row.col0,"abe")
+        self.assertEqual(row.col1,"51")
+        
+        #modify data
+        row.col1 = 52
+        session.commit()          
+        
+        #write csv
+        obj.sqla2csv(Model,"test/test_out_sjis2.csv",)
+        
+        #read csv again
+        obj = CsvSqla(enc_csv='cp932',header=False)
+        Model=obj.csv2sqla("test/test_out_sjis2.csv","table1")
+        session = obj.get_session()
+        row = session.query(Model).first()
+        self.assertEqual(row.col0,"abe")
+        self.assertEqual(row.col1,"52")        
         
     def tearDown(self):
         pass
