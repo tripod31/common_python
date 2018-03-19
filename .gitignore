@@ -1,11 +1,9 @@
 .git/
 .settings/
-.gradle/
-.*.html
+.vscode/
 
+#python
 __pycache__/*
 *.pyc
 
-/test/
-/test.xml
-/build.gradle
+/test
