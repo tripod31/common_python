@@ -12,21 +12,21 @@ from sqlalchemy.ext.declarative import declarative_base
 from builtins import isinstance
 import io
 
-'''
-convert CSV <--> Sqlite
-'''
 class CsvSqlite:
+    '''
+    convert CSV <--> Sqlite
+    '''
 
     @property
     def connection(self):
         return self._conn
     
-    '''
-    :param    enc_csv:csv encoding
-    :param    header:When true,It asume that first line of csv is header.When false,column names are 'col0','col1'...
-    :param    fmt:dictinary.passed to csv.reader/writer as format parameters
-    '''
     def __init__(self,db_file=":memory:",enc_csv="utf-8",header=True,fmt={}):
+        '''
+        :param    enc_csv:csv encoding
+        :param    header:When true,It asume that first line of csv is header.When false,column names are 'col0','col1'...
+        :param    fmt:dictinary.passed to csv.reader/writer as format parameters
+        '''
         self._db_file=db_file
         self._enc_csv = enc_csv
         self._conn = sqlite3.connect(self._db_file)
@@ -38,18 +38,16 @@ class CsvSqlite:
     def __del__(self):
         self._conn.close()
 
-    '''
-    Convert CSV --> Sqlite
-    
-    Create sqlite table from csv header.
-    All the other columns are text columns.
-    Create index to the columns which names are '*_id'.
-    insert csv datas into table.
-    
-    :param    csv_file:str of file name,or file object
-    :param    tablename:name of the table that csv datas are imported to
-    '''
     def csv2sqlite(self,csv_file,tablename):
+        '''
+        Convert CSV --> Sqlite
+        Create sqlite table from csv header.
+        All the other columns are text columns.
+        Create index to the columns which names are '*_id'.
+        insert csv datas into table.
+        :param    csv_file:str of file name,or file object
+        :param    tablename:name of the table that csv datas are imported to
+        '''
         #f:file object to read csv file        
         def proc(f):
             c = self._conn.cursor()
@@ -102,11 +100,11 @@ class CsvSqlite:
         else:
             raise ValueError("parameter 'csv_file' is'nt string or file object")
     
-    '''
-    :param    csv_file:str of file name,or file object
-    :param    tablename:name of the table that csv datas are exported from
-    '''
     def sqlite2csv(self,csv_file,tablename):
+        '''
+        :param    csv_file:str of file name,or file object
+        :param    tablename:name of the table that csv datas are exported from
+        '''
         #f:file object to read csv file
         def proc(f):
             csr=self._conn.execute('SELECT * FROM %s' % tablename)
@@ -131,17 +129,17 @@ class CsvSqlite:
         else:
             raise ValueError("parameter 'csv_file' is'nt string or file object")
                     
-'''
-convert CSV <--> SqlAlchemy
-'''
 class CsvSqla:
-    
     '''
-    :param    enc_csv:csv encoding
-    :param    header:When true,It asume that first line of csv is header
-    :param    fmt:dictinary.passed to csv.reader/writer as format parameters
-    '''
+    convert CSV <--> SqlAlchemy
+    '''   
+
     def __init__(self,db_file="sqlite:///:memory:",enc_csv="utf-8",header=True,p_echo=False,fmt={}):
+        '''
+        :param    enc_csv:csv encoding
+        :param    header:When true,It asume that first line of csv is header
+        :param    fmt:dictinary.passed to csv.reader/writer as format parameters
+        '''
         self._engine = create_engine(db_file, echo=p_echo)
         self._Session = sessionmaker(bind=self._engine) #Sessionクラス
         self._enc_csv = enc_csv
@@ -154,18 +152,15 @@ class CsvSqla:
     def get_session(self):
         return self._Session()
 
-    '''
-    convert CSV-->SqlAlchemy
-    
-    Create sqlite table from csv header.
-    All columns are text columns.
-    SqlAlchemy needs primary key,so we add auto-incriment "_id_" column.    
-    
-    insert csv datas into table.
-    returns SqlAlchemy class to access to the table.
-    '''
-
     def csv2sqla(self,csv_file,tablename):
+        '''
+        convert CSV-->SqlAlchemy
+        Create sqlite table from csv header.
+        All columns are text columns.
+        SqlAlchemy needs primary key,so we add auto-incriment "_id_" column.    
+        insert csv datas into table.
+        return: SqlAlchemy class to access to the table.
+        '''
         #f:file object to read csv file        
         def proc(f):
             reader = csv.reader(f,**self._fmt)
@@ -227,12 +222,11 @@ class CsvSqla:
             
         session.add(e)
         
-    '''
-    convert CSV<--SqlAlchemy
-    
-    Model    SqlAlchemy class
-    '''
     def sqla2csv(self,Model,csv_file):
+        '''
+        convert CSV<--SqlAlchemy
+        :param Model:SqlAlchemy class
+        '''
         #f:file object to read csv file        
         def proc(f):
             writer = csv.writer(f,lineterminator='\n',**self._fmt)
@@ -262,8 +256,8 @@ class CsvSqla:
         else:
             raise ValueError("parameter 'csv_file' is'nt string or file object")
             
-    '''
-    get column names of table
-    '''
     def get_col_names(self,metadata,tablename):
+        '''
+        get column names of table
+        '''
         return [ col.name for col in metadata.tables[tablename].columns]

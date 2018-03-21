@@ -19,10 +19,10 @@ Functions
 Data
 '''
 
-'''
-get list of common menbers of two lists
-'''
 def get_common_list(list1,list2):
+    """
+    get list of common menbers of two lists
+    """
     set1 = set(list1)
     set2 = set(list2)
     return list(set1 & set2)
@@ -33,16 +33,13 @@ Functions
 String
 '''
 
-'''
-display strings in two dimension array
-Each column length is adjusted to max length of data
-
-arr
-    two dimension array of strings,columns(list) x rows(list)
-format
-    format of output
-'''
 def print_arr(arr,p_format):
+    '''
+    display strings in two dimension array
+    Each column length is adjusted to max length of data
+    :param arr:two dimension array of strings,columns(list) x rows(list)
+    :param p_format:format of output
+    '''
     if len(arr)==0:
         return
     
@@ -63,26 +60,26 @@ def print_arr(arr,p_format):
         line = p_format % tuple(row)
         print(line)
     
-'''
-filter list of string,which matches regular expression
-'''
 def filter_arr(arr_str,arr_regex,revert=False):
-        return filter(lambda s:xor(is_match_patterns(s, arr_regex),revert),arr_str)
+    '''
+    filter list of string,which matches regular expression
+    '''
+    return filter(lambda s:xor(is_match_patterns(s, arr_regex),revert),arr_str)
 
-'''
-returns whether contains only ascii charactor,or not
-(ascii chars except controll chars)
-'''
 def is_all_ascii(s):
+    '''
+    returns whether contains only ascii charactor,or not
+    (ascii chars except controll chars)
+    '''
     if re.search(r'^[\x20-\x7E]+$',s) is None:
         return False
     else:
         return True
-    
-'''
-returns whether string matches regular expression or not
-'''
+
 def is_match_patterns(s,arr_pattern):
+    '''
+    returns whether string matches regular expression or not
+    '''
     bRet = False
     for pattern in arr_pattern:
         if re.search(pattern, s) is not None:
@@ -90,10 +87,10 @@ def is_match_patterns(s,arr_pattern):
             break
     return bRet
 
-'''
-returns whether string matches fnmatch expression or not
-'''
 def is_match_patterns_fnmatch(s,arr_pattern):
+    '''
+    returns whether string matches fnmatch expression or not
+    '''
     bRet = False
     for pattern in arr_pattern:
         if fnmatch.fnmatch(s, pattern):
@@ -107,21 +104,32 @@ Functions
 File
 '''
 
-'''
-returns files under directory
-'''
+def copy_dir(src,dst):
+    """
+    copy dir,in same way as 'cp -r dir1 dir2'
+    separater in dir arguments should be os.path.sep.in windows,'\\'.
+    :param src:source dir.
+    :param dst:dist dir.source dir is copied to dist dir(dir2/dir1 is created).
+    """
+
+    dirs = src.split(os.path.sep)
+    src_dir = dirs[len(dirs)-1]
+    shutil.copytree(src,os.path.join(dst,src_dir))
+
 def find_all_files(directory):
+    '''
+    returns files under directory
+    '''
     for root, dirs, files in os.walk(directory):
         for file in files:
             yield os.path.join(root, file)
 
-'''
-put files under directory to zip file
-
-filter_func
-    take path as argument,returns whether the file is to be output or not
-'''
 def zip_files(start_dir,zip_file,remove_dir=False,filter_func=None):
+    '''
+    put files under directory to zip file
+    :param filter_func:take path as argument,returns whether the file is to be output or not
+    '''
+
     with zipfile.ZipFile(zip_file, "w", zipfile.ZIP_DEFLATED) as zf:
         if filter_func is not None:
             arr_path = filter(filter_func,find_all_files(start_dir))
@@ -137,13 +145,12 @@ def zip_files(start_dir,zip_file,remove_dir=False,filter_func=None):
 class DecodeException(Exception):
     pass
 
-'''
-returns end of line chars of string
-
-returns
-    '\r\n,'\n','\r',''(no end of line)
-'''
 def get_eol(s):
+    '''
+    returns end of line chars of string
+    :return
+    '\\r\\n,'\\n','\\r',''(no end of line)
+    '''
     if re.search('\r\n',s):
         return '\r\n'
     
@@ -155,10 +162,11 @@ def get_eol(s):
         
     return ''
 
-'''
-get encoding of file
-'''
 def get_encoding(path):
+    '''
+    get encoding of file
+    '''
+
     encodings = ('ascii','utf-8','shift_jis','cp932','euc-jp')  #prevail utf-8,otherwise it fails to recognite encoding
     data=None
     bSuccess = False
@@ -181,14 +189,12 @@ def get_encoding(path):
 class EncodeException(Exception):
     pass
 
-'''
-converts encoding of file
-
-to_eol
-    end of line which is converted to.
-    '\r\n'(CRLF),'\n'(LF).'\r'(CR)
-'''
 def conv_encoding(path,to_enc,to_eol=None):
+    '''
+    converts encoding of file
+    :param to_eol:end of line which is converted to.
+    '\\r\\n'(CRLF),'\\n'(LF).'\\r'(CR)
+    '''
     org_enc,data = get_encoding(path)
     eol = get_eol(data)
     
@@ -218,10 +224,10 @@ def conv_encoding(path,to_enc,to_eol=None):
         
     os.remove(temp_file[1])
 
-'''
-replace string in file
-'''
 def replace_str(file,from_str,to_str):
+    '''
+    replace string in file
+    '''
     hit =False
     try:
         enc,data = get_encoding(file)

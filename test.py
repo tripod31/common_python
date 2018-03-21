@@ -3,11 +3,32 @@
 
 import unittest
 import os
+import shutil
 
-from yoshi.util import is_match_patterns,filter_arr,zip_files,find_all_files,conv_encoding
+from yoshi.util import is_match_patterns,filter_arr,zip_files,conv_encoding
 from yoshi.csv import CsvSqlite,CsvSqla
     
+def create_test_dir():
+    if os.path.exists('test'):
+        shutil.rmtree('test')
+    os.mkdir('test')
+
+def create_csv():    
+    with open("test/test_in_sjis.csv","w",encoding="cp932") as f:
+        f.write("name,age\n")
+        f.write("abe,51\n")
+        f.close()
+    
+    with open("test/test_in_sjis2.csv","w",encoding="cp932") as f:
+        f.write("abe,51\n")
+        f.write("yoshi,32\n")
+        f.close()
+
 class Test_util(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        create_test_dir()
+
     def test1(self):
         self.assertEqual(is_match_patterns("abcdef",["ab","cd"]),True)
         self.assertEqual(is_match_patterns("abcdef",["gh","ij"]),False)
@@ -18,27 +39,15 @@ class Test_util(unittest.TestCase):
         l= list(filter_arr(["abc","def","ghi"], ["bc"],True))
         self.assertListEqual(l, ["def","ghi"])
     def test4(self):
+        create_csv()
         zip_files("test", "test/zipwpath.zip",
-                  filter_func=lambda path:is_match_patterns(path, ["\.csv$"])
+                  filter_func=lambda path:is_match_patterns(path, ["\\.csv$"])
                 )
 
-def create_csv():
-    if not os.path.exists('test'):
-        os.mkdir('test')
-    
-    with open("test/test_in_sjis.csv","w",encoding="cp932") as f:
-        f.write("name,age\n")
-        f.write("abe,51\n")
-        f.close()
-    
-    with open("test/test_in_sjis2.csv","w",encoding="cp932") as f:
-        f.write("abe,51\n")
-        f.write("yoshi,32\n")
-        f.close()
-           
 class Test_csvsqlite(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        create_test_dir()
         create_csv()
         
     def setUp(self):
@@ -102,6 +111,11 @@ class Test_csvsqlite(unittest.TestCase):
         pass
 
 class Test_csvsqla(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        create_test_dir()
+        create_csv()
+        
     def setUp(self):
         pass
     
@@ -171,6 +185,10 @@ def create_file(s,enc):
         f.close()
 
 class Test_conv_encoding(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        create_test_dir()
+        
     def setUp(self):
         pass
     
