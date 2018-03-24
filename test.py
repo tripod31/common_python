@@ -7,7 +7,8 @@ import shutil
 
 from yoshi.util import is_match_patterns,filter_arr,zip_files,conv_encoding
 from yoshi.csv import CsvSqlite,CsvSqla
-    
+from yoshi.private import MakeZip
+
 def create_test_dir():
     if os.path.exists('test'):
         shutil.rmtree('test')
@@ -23,6 +24,27 @@ def create_csv():
         f.write("abe,51\n")
         f.write("yoshi,32\n")
         f.close()
+
+class Test_make_zip(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        pass
+
+    def test1(self):
+        obj = MakeZip()
+        sources = [
+            {"src":"yoshi","dst":"yoshi","ignore":"*.pyc"}
+        ]
+        errs = obj.make_zip("yoshi",sources,True)
+        print(errs)
+        self.assertEqual(len(errs),0)
+    
+    @classmethod
+    def tearDownClass(cls):
+        if os.path.exists("yoshi.zip"):
+            os.remove("yoshi.zip")
+        if os.path.exists("temp"):
+            shutil.rmtree("temp")
 
 class Test_util(unittest.TestCase):
     @classmethod
