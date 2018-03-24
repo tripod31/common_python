@@ -24,7 +24,7 @@ class MakeZip:
         """
         type = ""
         if isinstance(entry,str):
-            type = "simple"
+            type = "src"
         elif isinstance(entry,dict):
             if set(entry.keys())==set(["src","dst"]):
                 type = "src/dst"
@@ -60,7 +60,7 @@ class MakeZip:
         #copy files/dirs
         for ent in sources:
             type = self.__get_entry_type(ent)
-            if type == "simple":
+            if type == "src":
                 if not os.path.exists(ent):
                     self.errs.append("not exists:"+ent)
                     continue
