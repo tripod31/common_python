@@ -103,6 +103,36 @@ Functions
 =========
 File
 '''
+#used by func_copy()
+def disp_progress(src,dst):
+    size_src = os.path.getsize(src)
+    print_flg = False
+    while not stop_flg:
+        if os.path.exists(dst):
+            size_dst =  os.path.getsize(dst)
+            print("\rcopying {:>4.0f}MB/{:>4.0f}MB".format(size_dst/1024**2,size_src/1024**2),end="")
+            print_flg = True
+        time.sleep(1)
+    if print_flg:
+        print("\rdone"+" "*30)
+
+def func_copy(src, dst, *, follow_symlinks=True):
+    global stop_flg
+
+    print("{} -> {}".format(src,dst))
+    ret = ""
+    if os.path.getsize(src)>1024**2 :
+        #display progress if file size is big
+        print("copying:{} -> {}".format(src,dst))
+        stop_flg=False
+        th = threading.Thread(target = disp_progress,args=(src,dst))
+        th.start() 
+        ret = shutil.copy2(src,dst,follow_symlinks=False)
+        stop_flg = True
+        th.join()
+    else:
+        ret = shutil.copy2(src,dst,follow_symlinks=False)
+    return ret
 
 def copy_dir(src,dst):
     """
