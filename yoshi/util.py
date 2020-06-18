@@ -128,12 +128,19 @@ def func_copy(src, dst, *, follow_symlinks=True):
         print("copying:{} -> {}".format(src,dst))
         stop_flg=False
         th = threading.Thread(target = disp_progress,args=(src,dst))
-        th.start() 
-        ret = shutil.copy2(src,dst,follow_symlinks=False)
+        th.start()
+        try: 
+           ret = shutil.copy2(src,dst,follow_symlinks=False)
+        except Exception as e:
+           print(e)
+           
         stop_flg = True
         th.join()
     else:
-        ret = shutil.copy2(src,dst,follow_symlinks=False)
+        try:
+           ret = shutil.copy2(src,dst,follow_symlinks=False)
+        except Exception as e:
+           print(e)
     return ret
 
 def copy_dir(src,dst):
