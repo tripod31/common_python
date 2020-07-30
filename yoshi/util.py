@@ -109,14 +109,18 @@ File
 def disp_progress(src,dst):
     size_src = os.path.getsize(src)
     print_flg = False
+    max_len = 0
     while not stop_flg:
         if os.path.exists(dst):
             size_dst =  os.path.getsize(dst)
-            print("\rcopying {:>4.0f}MB/{:>4.0f}MB".format(size_dst/1024**2,size_src/1024**2),end="")
+            msg = "copying {:>4.0f}MB/{:>4.0f}MB {}->{}".format(size_dst/1024**2,size_src/1024**2,src,dst)
+            if len(msg)>max_len:
+                max_len = len(msg)
+            print("\r"+msg,end="")
             print_flg = True
         time.sleep(1)
     if print_flg:
-        print("\rdone"+" "*30)
+        print("\rdone" + " " * (max_len-4))
 
 def copy_with_progress(src, dst, *, follow_symlinks=True):
     global stop_flg
