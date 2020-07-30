@@ -113,7 +113,7 @@ def disp_progress(src,dst):
     while not stop_flg:
         if os.path.exists(dst):
             size_dst =  os.path.getsize(dst)
-            msg = "copying {:>4.0f}MB/{:>4.0f}MB {}->{}".format(size_dst/1024**2,size_src/1024**2,src,dst)
+            msg = "copying {:>4.0f}MB/{:>4.0f}MB {}".format(size_dst/1024**2,size_src/1024**2,os.path.basename(src))
             if len(msg)>max_len:
                 max_len = len(msg)
             print("\r"+msg,end="")
