@@ -120,7 +120,10 @@ def disp_progress(src,dst):
             print_flg = True
         time.sleep(1)
     if print_flg:
-        print("\rdone" + " " * (max_len-4))
+        msg = "copied {}->{}".format(src,dst)
+        if len(msg)<max_len:
+            msg = msg + " " * (max_len - len(msg))
+        print("\r" + msg)
 
 def copy_with_progress(src, dst, *, follow_symlinks=True):
     global stop_flg
