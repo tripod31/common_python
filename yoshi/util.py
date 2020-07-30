@@ -105,7 +105,7 @@ Functions
 =========
 File
 '''
-#used by func_copy()
+#used by copy_with_progress()
 def disp_progress(src,dst):
     size_src = os.path.getsize(src)
     print_flg = False
@@ -118,14 +118,12 @@ def disp_progress(src,dst):
     if print_flg:
         print("\rdone"+" "*30)
 
-def func_copy(src, dst, *, follow_symlinks=True):
+def copy_with_progress(src, dst, *, follow_symlinks=True):
     global stop_flg
 
-    print("{} -> {}".format(src,dst))
     ret = ""
     if os.path.getsize(src)>1024**2 :
         #display progress if file size is big
-        print("copying:{} -> {}".format(src,dst))
         stop_flg=False
         th = threading.Thread(target = disp_progress,args=(src,dst))
         th.start()
@@ -159,7 +157,7 @@ def find_all_files(directory):
     '''
     returns files under directory
     '''
-    for root, dirs, files in os.walk(directory):
+    for root, _dirs, files in os.walk(directory):
         for file in files:
             yield os.path.join(root, file)
 
