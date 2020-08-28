@@ -136,7 +136,7 @@ def copy_with_progress(src, dst, *, follow_symlinks=True):
         th.start()
         ex = None
         try: 
-           ret = shutil.copy2(src,dst,follow_symlinks=False)
+           ret = shutil.copy2(src,dst,follow_symlinks=follow_symlinks)
         except Exception as e:
            ex = e
 
@@ -145,7 +145,7 @@ def copy_with_progress(src, dst, *, follow_symlinks=True):
         if ex is not None:
            raise ex
     else:
-        ret = shutil.copy2(src,dst,follow_symlinks=False)
+        ret = shutil.copy2(src,dst,follow_symlinks=follow_symlinks)
     return ret
 
 def copy_dir(src,dst):
